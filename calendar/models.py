@@ -8,20 +8,17 @@ class Calendar(ModelBase):
 class EntryAbstract(models.Model):
     start = models.DateTimeField()
     end = models.DateTimeField()
-    calendar = models.ManyToMany(
-        'calendar.Calendar')
-    )
     content = models.ForeignKey(
-        'content.ModelBase'
+        'content.ModelBase',
     )
     class Meta():
         abstract = True
 
 class Entry(EntryAbstract):
     repeat = models.CharField(
-        max_length=64
+        max_length=64,
         choices=(
-            (None, 'Does Not Repeat')
+            (None, 'Does Not Repeat'),
             ('daily', 'Daily'), 
             ('weekly', 'Weekly'), 
             ('monthly', 'Monthly'), 
@@ -34,8 +31,16 @@ class Entry(EntryAbstract):
         blank=True,
         null=True,
     )
+    calendar = models.ManyToManyField(
+        'calendar.Calendar',
+        related_name='entry_calendar'
+    )
 
 class EntryItem(EntryAbstract):
     entry = models.ForeignKey(
         'calendar.Entry',
+    )
+    calendar = models.ManyToManyField(
+        'calendar.Calendar',
+        related_name='entryitem_calendar'
     )
