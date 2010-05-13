@@ -24,8 +24,7 @@ class Entry(EntryAbstract):
             ('monthly', 'Monthly'), 
             ('yearly', 'Yearly'),
         ),
-        blank=True,
-        null=True,
+        default='Does Not Repeat',
     )
     repeat_until = models.DateField(
         blank=True,
