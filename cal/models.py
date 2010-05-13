@@ -2,8 +2,20 @@ from django.db import models
 
 from content.models import ModelBase
 
+def save_handler_does_not_repeat(entry):
+    # raise an error if wrong handler is triggered
+    if entry.repeat != 'does_not_repeat':
+        raise Exception("In handler 'save_handler_does_not_repeat' for entry with repeat set as '%s'" % entry.repeat)
+    
+def save_handler_daily(entry):
+    # raise an error if wrong handler is triggered
+    if entry.repeat != 'daily':
+        raise Exception("In handler 'daily' for entry with repeat set as '%s'" % entry.repeat)
+    
 class Calendar(ModelBase):
-    pass
+    class Meta():
+        verbose_name = "Calendar"
+        verbose_name_plural = "Calendars"
 
 class EntryAbstract(models.Model):
     start = models.DateTimeField()
@@ -18,7 +30,7 @@ class Entry(EntryAbstract):
     repeat = models.CharField(
         max_length=64,
         choices=(
-            (None, 'Does Not Repeat'),
+            ('does_not_repeat', 'Does Not Repeat'),
             ('daily', 'Daily'), 
             ('weekly', 'Weekly'), 
             ('monthly', 'Monthly'), 
@@ -31,15 +43,30 @@ class Entry(EntryAbstract):
         null=True,
     )
     calendar = models.ManyToManyField(
-        'calendar.Calendar',
+        'cal.Calendar',
         related_name='entry_calendar'
     )
 
+    def save(self, *args, **kwargs):
+        repeat_handlers = {
+            'does_not_repeat': save_handler_does_not_repeat,
+            'daily': save_handler_daily,
+        }
+        repeat_handlers[self.repeat](self)
+        super(Entry, self).save(*args, **kwargs)
+
+    def __unicode__(self):
+        return "Entry for %s" % self.content.title
+
+    class Meta():
+        verbose_name = "Entry"
+        verbose_name_plural = "Entries"
+
 class EntryItem(EntryAbstract):
     entry = models.ForeignKey(
-        'calendar.Entry',
+        'cal.Entry',
     )
     calendar = models.ManyToManyField(
-        'calendar.Calendar',
+        'cal.Calendar',
         related_name='entryitem_calendar'
     )
