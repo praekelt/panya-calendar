@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from django.db import models
 
+from cal.managers import PermittedManager
 from content.models import ModelBase
 
 def save_handler_does_not_repeat(entry):
@@ -215,6 +216,9 @@ class Entry(EntryAbstract):
         return self.end - self.start
         
 class EntryItem(EntryAbstract):
+    objects = models.Manager()
+    permitted = PermittedManager() 
+
     entry = models.ForeignKey(
         'cal.Entry',
     )
