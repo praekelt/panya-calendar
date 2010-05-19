@@ -233,3 +233,6 @@ class EntryItem(EntryAbstract):
     @property
     def duration(self):
         return self.end - self.start
+
+    class Meta():
+        ordering = ('start',)
