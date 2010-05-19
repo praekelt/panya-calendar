@@ -510,3 +510,95 @@ class PermittedManagerTestCase(unittest.TestCase):
         for entry_item in queryset:
             self.failUnless(entry_item.start < datetime.now())
             self.failUnless(entry_item.end > datetime.now())
+
+    def test_by_range(self):
+        # create published calendar
+        published_cal = Calendar(title='title', state='published')
+        published_cal.save()
+        published_cal.sites.add(self.web_site)
+        published_cal.save()
+        
+        # create published content
+        content = ModelBase(title='title', state='published')
+        content.save()
+        content.sites.add(self.web_site)
+        content.save()
+        
+        start = datetime.now()
+        end = start + timedelta(days=2)
+
+        # create entryitem that spans the range
+        spanning_entryitem = EntryItem(entry_id=1, start=start - timedelta(days=1), end=end + timedelta(days=1), content=content)
+        spanning_entryitem.save()
+        spanning_entryitem.calendars.add(published_cal)
+        
+        # create entryitem that precedes the range
+        preceding_entryitem = EntryItem(entry_id=1, start=start - timedelta(days=1), end=start, content=content)
+        preceding_entryitem.save()
+        preceding_entryitem.calendars.add(published_cal)
+        
+        # create entryitem that procedes the range
+        proceding_entryitem = EntryItem(entry_id=1, start=end, end=end + timedelta(days=1), content=content)
+        proceding_entryitem.save()
+        proceding_entryitem.calendars.add(published_cal)
+        
+        # create entryitem that is contained in the range
+        contained_entryitem = EntryItem(entry_id=1, start=start, end=end, content=content)
+        contained_entryitem.save()
+        contained_entryitem.calendars.add(published_cal)
+        
+        # create entryitem that starts before range but ends within range
+        end_contained_entryitem = EntryItem(entry_id=1, start=start-timedelta(days=1), end=end, content=content)
+        end_contained_entryitem.save()
+        end_contained_entryitem.calendars.add(published_cal)
+        
+        # create entryitem that starts in range but ends after range
+        start_contained_entryitem = EntryItem(entry_id=1, start=start, end=end+timedelta(days=1), content=content)
+        start_contained_entryitem.save()
+        start_contained_entryitem.calendars.add(published_cal)
+        
+        result = EntryItem.permitted.by_range(start, end)
+
+        # spanning entry should be in result
+        self.failUnless(spanning_entryitem in result)
+
+        # preceding entry should not be in result
+        self.failIf(preceding_entryitem in result)
+        
+        # proceding entry should not be in result
+        self.failIf(proceding_entryitem in result)
+
+        # contained entryitem should be in result
+        self.failUnless(contained_entryitem in result)
+        
+        # entry starting before range but ending withing range should be in result
+        self.failUnless(end_contained_entryitem in result)
+        
+        # entry starting in range but ending after range should be in result
+        self.failUnless(start_contained_entryitem in result)
+    
+    def test_by_date(self):
+        # create published calendar
+        published_cal = Calendar(title='title', state='published')
+        published_cal.save()
+        published_cal.sites.add(self.web_site)
+        published_cal.save()
+        
+        # create published content
+        content = ModelBase(title='title', state='published')
+        content.save()
+        content.sites.add(self.web_site)
+        content.save()
+        
+        # create entries
+        entry_obj = Entry(start=datetime.now(), end=datetime.now() + timedelta(days=1), repeat="daily", repeat_until=(datetime.now() + timedelta(days=30)).date(), content=content)
+        entry_obj.save()
+        entry_obj.calendars.add(published_cal)
+        entry_obj.save()
+        
+        now = datetime.now()
+        date = now.date()
+       
+        # result should only contain the entry for the date
+        result = EntryItem.permitted.by_date(date)
+        self.failUnlessEqual(result.count(), 1)

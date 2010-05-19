@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.db.models.query import Q
 
 class EntryItemQuerySet(models.query.QuerySet):
     def by_model(self, model):
@@ -18,6 +19,19 @@ class EntryItemQuerySet(models.query.QuerySet):
         """
         now = datetime.now()
         return self.filter(start__lt=now, end__gt=now)
+
+    def by_date(self, date):
+        start = datetime(date.year, date.month, date.day)
+        end = start + timedelta(days=1)
+        
+        # to force inclusion offset start and end by 1 second
+        # start = start + timedelta(seconds=1)
+        # end = end - timedelta(seconds=1)
+
+        return self.by_range(start, end)
+    
+    def by_range(self, start, end):
+        return self.exclude(start__gte=end).exclude(end__lte=start)
 
 class PermittedManager(models.Manager):
     def get_query_set(self):
@@ -51,3 +65,9 @@ class PermittedManager(models.Manager):
 
     def now(self):
         return self.get_query_set().now()
+
+    def by_date(self, date):
+        return self.get_query_set().by_date(date)
+    
+    def by_range(self, start, end):
+        return self.get_query_set().by_range(start, end)
