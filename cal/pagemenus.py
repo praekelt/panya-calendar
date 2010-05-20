@@ -1,13 +1,13 @@
 import calendar
 from datetime import datetime, timedelta
 
-from pagemenu.items import Item
+from pagemenu.items import GetItem
 from pagemenu.pagemenus import PageMenu
 
-class EntryByWeekdayItem(Item):
-    def __init__(self, title, get, date, default=False):
+class EntryByWeekdayItem(GetItem):
+    def __init__(self, request, title, get, date, default):
         self.date=date
-        super(EntryByWeekdayItem, self).__init__(title, get, default)
+        super(EntryByWeekdayItem, self).__init__(request, title, get, default)
 
     def action(self, queryset):
         return queryset.by_date(self.date)
@@ -29,6 +29,7 @@ class EntriesByWeekdaysPageMenu(PageMenu):
 
         for name in day_names:
             self.items.append(EntryByWeekdayItem(
+                request=request,
                 title=name,
                 get={'name': 'day', 'value': name},
                 default=current_day==name,
