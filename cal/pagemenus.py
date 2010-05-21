@@ -7,7 +7,7 @@ from pagemenu.pagemenus import PageMenu
 class EntryByWeekdayItem(GetItem):
     def __init__(self, request, title, get, date, default):
         self.date=date
-        super(EntryByWeekdayItem, self).__init__(request, title, get, default)
+        super(EntryByWeekdayItem, self).__init__(request=request, title=title, get=get, default=default)
 
     def action(self, queryset):
         return queryset.by_date(self.date)
@@ -32,8 +32,8 @@ class EntriesByWeekdaysPageMenu(PageMenu):
                 request=request,
                 title=name,
                 get={'name': 'day', 'value': name},
-                default=current_day==name,
                 date=dates_by_day[name],
+                default=current_day==name,
             ))
-
+            
         super(EntriesByWeekdaysPageMenu, self).__init__(queryset, request)
