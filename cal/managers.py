@@ -32,8 +32,32 @@ class EntryItemQuerySet(models.query.QuerySet):
     
     def by_range(self, start, end):
         return self.exclude(start__gte=end).exclude(end__lte=start)
-        
-    def up_coming(self):
+
+    def next7days(self):
+        start = datetime.now()
+        end = start + timedelta(days=7)
+        return self.by_range(start, end)
+
+    def thisweekend(self):
+        now = datetime.now()
+        start = now + timedelta(4 - now.weekday())
+        end = now + timedelta(6 - now.weekday())
+        result = self.by_range(start, end)
+
+        # set the entry start and end dates to be contained within the weekend
+        for item in result:
+            if item.start < start:
+                item.start = start
+            if item.end > end:
+                item.end = end 
+        return result
+
+    def thismonth(self):
+        start = datetime.now()
+        end = datetime(start.year, (start.month+1), 1)
+        return self.by_range(start, end)
+
+    def upcoming(self):
         now = datetime.now()
         return self.exclude(end__lte=now)
 
@@ -76,5 +100,14 @@ class PermittedManager(models.Manager):
     def by_range(self, start, end):
         return self.get_query_set().by_range(start, end)
         
-    def up_coming(self):
-        return self.get_query_set().up_coming()
+    def next7days(self):
+        return self.get_query_set().next7days()
+        
+    def thisweekend(self):
+        return self.get_query_set().thisweekend()
+        
+    def thismonth(self):
+        return self.get_query_set().thismonth()
+        
+    def upcoming(self):
+        return self.get_query_set().upcoming()
