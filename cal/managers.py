@@ -32,6 +32,10 @@ class EntryItemQuerySet(models.query.QuerySet):
     
     def by_range(self, start, end):
         return self.exclude(start__gte=end).exclude(end__lte=start)
+        
+    def up_coming(self):
+        now = datetime.now()
+        return self.exclude(end__lte=now)
 
 class PermittedManager(models.Manager):
     def get_query_set(self):
@@ -71,3 +75,6 @@ class PermittedManager(models.Manager):
     
     def by_range(self, start, end):
         return self.get_query_set().by_range(start, end)
+        
+    def up_coming(self):
+        return self.get_query_set().up_coming()
