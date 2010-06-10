@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from cal.models import Calendar, Entry
-from content.admin import ModelBaseAdmin
+from panya.admin import ModelBaseAdmin
 
 class EntryAdmin(admin.ModelAdmin):
     list_display = ('content', 'start', 'end', 'repeat', 'repeat_until')
