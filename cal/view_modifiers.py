@@ -1,19 +1,20 @@
 import calendar
 from datetime import datetime, timedelta
 
-from pagemenu.items import GetItem
-from pagemenu.pagemenus import PageMenu
+from panya.view_modifiers import ViewModifier
+from panya.view_modifiers.items import GetItem
 
 class EntryByWeekdayItem(GetItem):
     def __init__(self, request, title, get, date, default):
         self.date=date
         super(EntryByWeekdayItem, self).__init__(request=request, title=title, get=get, default=default)
 
-    def action(self, queryset):
-        return queryset.by_date(self.date)
+    def modify(self, view):
+        view.params['queryset'] = view.params['queryset'].by_date(self.date)
+        return view
 
-class EntriesByWeekdaysPageMenu(PageMenu):
-    def __init__(self, queryset, request):
+class EntriesByWeekdaysViewModifier(ViewModifier):
+    def __init__(self, request, *args, **kwargs):
         self.items = []
         now = datetime.now().date()
         
@@ -36,4 +37,4 @@ class EntriesByWeekdaysPageMenu(PageMenu):
                 default=current_day==name,
             ))
             
-        super(EntriesByWeekdaysPageMenu, self).__init__(queryset, request)
+        super(EntriesByWeekdaysViewModifier, self).__init__(request)
