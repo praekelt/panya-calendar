@@ -135,6 +135,7 @@ def save_handler_monthly_by_day_of_month(entry):
 
         for calendar in entry.calendars.all():
             entry_item.calendars.add(calendar)
+        entry_item.save()
 
         # get next valid date
         valid_date = False
